@@ -1,0 +1,353 @@
+swagger: "2.0"
+
+info:
+  description: Kubernetes service configuration service
+  title: Kruise
+  version: 0.0.1
+
+consumes:
+  - "application/json"
+
+produces:
+  - "text/plain"
+
+paths:
+  /v1/app/configs:
+    post:
+      tags:
+        - config
+      operationId: createAppConfig
+      description: Creates the application configurations
+      parameters:
+        - name: application
+          in: body
+          description: the application object
+          required: true
+          schema:
+            $ref: '#/definitions/application'
+      responses:
+        201:
+          description: created
+          schema:
+            type: string
+        400:
+          $ref: "#/responses/BadRequest"
+        default:
+          $ref: "#/responses/InternalServerError"
+
+  /v1/health:
+    get:
+      tags:
+        - health
+      operationId: getHealth
+      description: Get the current health of the API
+      responses:
+        200:
+          description: Get current health response
+          schema:
+            $ref: "#/definitions/healthStatus"
+        default:
+          description: Error response
+          schema:
+            $ref: "#/definitions/error"
+
+responses:
+  BadRequest:
+    description: Bad request
+    schema:
+      type: string
+
+  InternalServerError:
+    description: Internal server error
+    schema:
+      $ref: "#/definitions/error"
+
+definitions:
+  application:
+    type: object
+    properties:
+      metadata:
+        $ref: "#/definitions/metadata"
+      component:
+        $ref: "#/definitions/component"
+    required:
+      - metadata
+      - component
+
+  metadata:
+    type: object
+    properties:
+      app:
+        type: string
+        description: The name of the application
+        minLength: 1
+        x-nullable: false
+      version:
+        type: string
+        description: The version of the application
+        minLength: 1
+        x-nullable: false
+      env:
+        type: string
+        description: The name of the environment
+        minLength: 1
+        x-nullable: false
+        enum:
+          - DEV
+          - INT
+          - STG
+          - PRD
+      output:
+        type: string
+        description: The output format of the result
+        minLength: 1
+        x-nullable: false
+        enum:
+          - yaml
+          - kustomize
+        default: yaml
+      dependencies:
+        description: The dependent services of the app
+        $ref: "#/definitions/dependencies"
+      plugins:
+        description: The plugins for app deployment
+        $ref: "#/definitions/plugins"
+      namespace:
+        type: string
+        description: The namespace to deploy to
+        minLength: 1
+        x-nullable: false
+        default: default
+    required:
+      - app
+      - version
+      - env
+      - dependencies
+
+  component:
+    type: object
+    properties:
+      replicas:
+        type: integer
+        description: The number of pods to deploy
+        x-nullable: false
+        default: 1
+      service:
+        $ref: "#/definitions/service"
+      containers:
+        type: array
+        items:
+          $ref: "#/definitions/container"
+    required:
+      - containers
+
+  service:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the service
+        minLength: 1
+        x-nullable: false
+      type:
+        type: string
+        description: The service type
+        x-nullable: false
+        default: ClusterIP
+        enum:
+          - ClusterIP
+          - ExternalName
+          - LoadBalancer
+          - NodePort
+      ports:
+        type: array
+        items:
+          $ref: "#/definitions/servicePort"
+
+  servicePort:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of this port within the service
+        minLength: 1
+        x-nullable: false
+      port:
+        type: integer
+        description: The port that will be exposed by this service
+        x-nullable: false
+        default: 80
+      protocol:
+        type: string
+        description: The IP protocol for this port. Supports "TCP" and "UDP". Default is TCP
+        minLength: 1
+        x-nullable: false
+        default: TCP
+        enum:
+          - TCP
+          - UDP
+      targetPort:
+        type: integer
+        description: Number or name of the port to access on the pods targeted by the service
+        x-nullable: false
+        default: 80
+    required:
+      - targetPort
+
+  container:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of this container within the service
+        minLength: 1
+        x-nullable: false
+      image:
+        type: string
+        description: The docker image name for the container
+        minLength: 1
+        x-nullable: false
+      imageTag:
+        type: string
+        description: The docker image tag for the container
+        minLength: 1
+        x-nullable: false
+      imagePullPolicy:
+        type: string
+        description: Image pull policy. One of Always or IfNotPresent.
+        minLength: 1
+        x-nullable: false
+        default: Always
+        enum:
+          - Always
+          - IfNotPresent
+      command:
+        type: string
+        description: The command to run for the docker image's entrypoint.
+        x-nullable: true
+      portNames:
+        type: array
+        items:
+          type: string
+      env:
+        $ref: "#/definitions/env"
+    required:
+      - image
+
+  env:
+    type: object
+    properties:
+      values:
+        type: array
+        items:
+          $ref: "#/definitions/value"
+        x-nullable: true
+      valueFroms:
+        type: array
+        items:
+          $ref: "#/definitions/valueFrom"
+        x-nullable: true
+
+  dependencies:
+    type: object
+    properties:
+      mysql:
+        type: boolean
+        default: false
+      aws:
+        type: boolean
+        default: false
+    default:
+      mysql: false
+      aws: false
+
+  plugins:
+    type: object
+    properties:
+      swagger:
+        type: boolean
+        default: true
+      secretLoader:
+        type: boolean
+        default: true
+    default:
+      swagger: true
+      secretLoader: true
+
+  value:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the environment variable.
+        minLength: 1
+        x-nullable: false
+      value:
+        type: string
+        description: Value of the environment variable.
+        minLength: 1
+        x-nullable: false
+    required:
+      - name
+      - value
+      
+  valueFrom:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the environment variable.
+        minLength: 1
+        x-nullable: false
+      valueRef:
+        $ref: "#/definitions/valueRef"
+    required:
+      - name
+      - valueRef
+      
+  valueRef:
+    type: object
+    properties:
+      type:
+        type: string
+        description: Type of the value referent.
+        minLength: 1
+        x-nullable: false
+        enum:
+          - configMapKeyRef
+          - fieldRef
+          - resourceFieldRef
+          - secretKeyRef
+      name:
+        type: string
+        description: Name of the value referent.
+        minLength: 1
+        x-nullable: false
+      key:
+        type: string
+        description: Key of the value referent.
+        minLength: 1
+        x-nullable: false
+    required:
+      - type
+      - name
+      - key
+
+  healthStatus:
+    type: object
+    properties:
+      status:
+        type: string
+
+  error:
+    type: object
+    required:
+      - message
+    properties:
+      code:
+        type: integer
+        format: int64
+      message:
+        type: string
+        minLength: 1
+        x-nullable: false

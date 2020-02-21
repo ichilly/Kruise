@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.App.Metadata.App}}
+  namespace: {{.App.Metadata.Namespace}}
+  labels:
+    app: {{.App.Metadata.App}}
+    version: {{.App.Metadata.Version}}
+spec:
+  {{- if .App.Component.Replicas }}
+  replicas: {{.App.Component.Replicas}}
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{.App.Metadata.App}}
+  template:
+    metadata:
+      labels:
+        app: {{.App.Metadata.App}}
+    spec:
+      containers:
+      {{- range .Containers }}
+      {{- if .Name }}
+      - name: {{.Name}}
+      {{- else }}
+      - name: {{$.App.Metadata.App}}
+      {{- end }}
+        {{- if .ImageTag }}
+        image: {{.Image}}:{{.ImageTag}}
+        {{- else }}
+        image: {{.Image}}:{{$.App.Metadata.Version}}
+        {{- end }}
+        {{- if .ImagePullPolicy }}
+        imagePullPolicy: {{.ImagePullPolicy}}
+        {{- else }}
+        imagePullPolicy: Always
+        {{- end }}
+        {{- if .Command }}
+        command: [{{.Command}}]
+        {{- end }}
+        ports:
+        {{- range $containerPort := .PortNames }}
+        {{- range $servicePort := $.Service.Ports }}
+        {{- if eq $containerPort $servicePort.Name}}
+        - name: {{$servicePort.Name}}
+          {{- if $servicePort.TargetPort }}
+          containerPort: {{$servicePort.TargetPort}}
+          {{- else }}
+          containerPort: {{$servicePort.Port}}
+          {{- end }}
+          {{- if $servicePort.Protocol }}
+          protocol: {{$servicePort.Protocol}}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if .Env }}
+        env:
+        {{- range .Env.Values }}
+        - name: {{.Name}}
+          value: "{{.Value}}"
+        {{- end }}
+        {{- range $valueFrom := .Env.ValueFroms }}
+        - name: {{.Name}}
+          valueFrom:
+            {{$valueFrom.ValueRef.Type}}:
+              name: {{$valueFrom.ValueRef.Name}}
+              key: {{$valueFrom.ValueRef.Key}}
+        {{- end }}
+        {{- end }}
+      {{- end }}
