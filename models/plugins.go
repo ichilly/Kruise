@@ -16,9 +16,6 @@ import (
 // swagger:model plugins
 type Plugins struct {
 
-	// secret loader
-	SecretLoader *bool `json:"secretLoader,omitempty"`
-
 	// swagger
 	Swagger *bool `json:"swagger,omitempty"`
 }
@@ -26,7 +23,7 @@ type Plugins struct {
 func (m *Plugins) UnmarshalJSON(b []byte) error {
 	type PluginsAlias Plugins
 	var t PluginsAlias
-	if err := json.Unmarshal([]byte("{\"secretLoader\":true,\"swagger\":true}"), &t); err != nil {
+	if err := json.Unmarshal([]byte("{\"swagger\":true}"), &t); err != nil {
 		return err
 	}
 	if err := json.Unmarshal(b, &t); err != nil {

@@ -26,7 +26,7 @@ func init() {
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Kubernetes service configuration service",
+    "description": "Kubernetes service configurator",
     "title": "Kruise",
     "version": "0.0.1"
   },
@@ -140,6 +140,7 @@ func init() {
           "x-nullable": true
         },
         "env": {
+          "x-nullable": false,
           "$ref": "#/definitions/env"
         },
         "image": {
@@ -176,6 +177,13 @@ func init() {
           "items": {
             "type": "string"
           }
+        },
+        "volumeMounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/volumeMounts"
+          },
+          "x-nullable": true
         }
       }
     },
@@ -304,14 +312,9 @@ func init() {
     "plugins": {
       "type": "object",
       "default": {
-        "secretLoader": true,
         "swagger": true
       },
       "properties": {
-        "secretLoader": {
-          "type": "boolean",
-          "default": true
-        },
         "swagger": {
           "type": "boolean",
           "default": true
@@ -456,6 +459,33 @@ func init() {
           "x-nullable": false
         }
       }
+    },
+    "volumeMounts": {
+      "type": "object",
+      "required": [
+        "name",
+        "mountPath",
+        "readOnly",
+        "configMap"
+      ],
+      "properties": {
+        "configMap": {
+          "type": "string",
+          "x-nullable": false
+        },
+        "mountPath": {
+          "type": "string",
+          "x-nullable": false
+        },
+        "name": {
+          "type": "string",
+          "x-nullable": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": true
+        }
+      }
     }
   },
   "responses": {
@@ -482,7 +512,7 @@ func init() {
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Kubernetes service configuration service",
+    "description": "Kubernetes service configurator",
     "title": "Kruise",
     "version": "0.0.1"
   },
@@ -602,6 +632,7 @@ func init() {
           "x-nullable": true
         },
         "env": {
+          "x-nullable": false,
           "$ref": "#/definitions/env"
         },
         "image": {
@@ -638,6 +669,13 @@ func init() {
           "items": {
             "type": "string"
           }
+        },
+        "volumeMounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/volumeMounts"
+          },
+          "x-nullable": true
         }
       }
     },
@@ -766,14 +804,9 @@ func init() {
     "plugins": {
       "type": "object",
       "default": {
-        "secretLoader": true,
         "swagger": true
       },
       "properties": {
-        "secretLoader": {
-          "type": "boolean",
-          "default": true
-        },
         "swagger": {
           "type": "boolean",
           "default": true
@@ -916,6 +949,33 @@ func init() {
             "secretKeyRef"
           ],
           "x-nullable": false
+        }
+      }
+    },
+    "volumeMounts": {
+      "type": "object",
+      "required": [
+        "name",
+        "mountPath",
+        "readOnly",
+        "configMap"
+      ],
+      "properties": {
+        "configMap": {
+          "type": "string",
+          "x-nullable": false
+        },
+        "mountPath": {
+          "type": "string",
+          "x-nullable": false
+        },
+        "name": {
+          "type": "string",
+          "x-nullable": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": true
         }
       }
     }

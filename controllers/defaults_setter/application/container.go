@@ -6,8 +6,6 @@ import (
 	"github.com/ichilly/Kruise/models"
 )
 
-// TODO: Load secrets in initContainer and write to env
-
 func SetContainerDefaults(app *models.Application) {
 	// Preload data
 	if len(app.Component.Containers) == 1 {

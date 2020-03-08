@@ -2,7 +2,7 @@
 
 // Package restapi Kruise
 //
-//  Kubernetes service configuration service
+//  Kubernetes service configurator
 //  Schemes:
 //    http
 //  Host: localhost

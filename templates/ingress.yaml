@@ -5,16 +5,16 @@ metadata:
   namespace: {{.App.Metadata.Namespace}}
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/rewrite-target: "http://ingressdomain.com/swagger?url=https://docs.s3.us-east-1.amazonaws.com/swagger/{{.App.Metadata.Env}}/{{.App.Metadata.App}}/swagger.json"
 spec:
   tls:
     - secretName: tls-secret
   rules:
     - http:
         paths:
-          - path: /{{.App.Metadata.App}}/docs(/|$)(.*)
+          - path: /{{.App.Metadata.App}}/docs
             backend:
-              serviceName: {{.App.Metadata.App}}
+              serviceName: swagger-ui
               servicePort: 8080
 ---
 apiVersion: extensions/v1beta1

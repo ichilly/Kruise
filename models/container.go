@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	strfmt "github.com/go-openapi/strfmt"
@@ -44,6 +45,9 @@ type Container struct {
 
 	// port names
 	PortNames []string `json:"portNames"`
+
+	// volume mounts
+	VolumeMounts []*VolumeMounts `json:"volumeMounts"`
 }
 
 // Validate validates this container
@@ -67,6 +71,10 @@ func (m *Container) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVolumeMounts(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -175,6 +183,31 @@ func (m *Container) validateName(formats strfmt.Registry) error {
 
 	if err := validate.MinLength("name", "body", string(m.Name), 1); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *Container) validateVolumeMounts(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.VolumeMounts) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.VolumeMounts); i++ {
+		if swag.IsZero(m.VolumeMounts[i]) { // not required
+			continue
+		}
+
+		if m.VolumeMounts[i] != nil {
+			if err := m.VolumeMounts[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("volumeMounts" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil
