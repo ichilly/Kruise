@@ -9,8 +9,6 @@ metadata:
 spec:
   {{- if .App.Component.Replicas }}
   replicas: {{.App.Component.Replicas}}
-  {{- else }}
-  replicas: 1
   {{- end }}
   strategy:
     type: Recreate
@@ -23,7 +21,7 @@ spec:
         app: {{.App.Metadata.App}}
     spec:
       containers:
-      {{- range .Containers }}
+      {{- range $container := .Containers }}
       {{- if .Name }}
       - name: {{.Name}}
       {{- else }}
@@ -58,9 +56,10 @@ spec:
         {{- end }}
         {{- end }}
         {{- end }}
-        {{- if .Env }}
+        {{- if or (($container.Env.Values) ($container.Env.ValueFroms)) }}
         env:
-        {{- range .Env.Values }}
+        {{- end }}
+        {{- range $container.Env.Values }}
         - name: {{.Name}}
           value: "{{.Value}}"
         {{- end }}
@@ -71,5 +70,20 @@ spec:
               name: {{$valueFrom.ValueRef.Name}}
               key: {{$valueFrom.ValueRef.Key}}
         {{- end }}
+        {{- if .VolumeMounts }}
+        volumeMounts:
         {{- end }}
+        {{- range .VolumeMounts }}
+        - name: {{ .Name }}
+          mountPath: {{ .MountPath }}
+          readOnly: {{ .ReadOnly }}
+        {{- end }}
+      {{- if .VolumeMounts }}
+      volumes:
+      {{- end }}
+      {{- range .VolumeMounts }}
+      - name: {{ .Name }}
+        configMap:
+          name: {{ .ConfigMap }}
+      {{- end }}
       {{- end }}

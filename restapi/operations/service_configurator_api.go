@@ -50,7 +50,7 @@ func NewServiceConfiguratorAPI(spec *loads.Document) *ServiceConfiguratorAPI {
 	}
 }
 
-/*ServiceConfiguratorAPI Kubernetes service configuration service */
+/*ServiceConfiguratorAPI Kubernetes service configurator */
 type ServiceConfiguratorAPI struct {
 	spec            *loads.Document
 	context         *middleware.Context
